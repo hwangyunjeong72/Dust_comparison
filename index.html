@@ -3,64 +3,37 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>오늘의 진짜 정보판</title>
-
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#eef1f5;color:#222;font-family:Arial,"Malgun Gothic",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#eef1f5;color:#222;font-family:Arial,"Malgun Gothic",sans-serif}
 .dashboard{width:100vw;height:100vh;min-width:1100px;min-height:620px;padding:25px;display:flex;flex-direction:column}
-.header{height:60px;display:flex;align-items:center;justify-content:space-between}
-.title{font-size:27px;font-weight:bold}.date{font-size:14px;color:#666}
-.main{flex:1;display:flex;gap:18px;min-height:0}
-.chart-section,.side-panel{background:#fff;border:1px solid #d5d9df;border-radius:10px}
-.chart-section{flex:1;padding:18px;display:flex;flex-direction:column;min-width:0}
-.index-tabs,.period-tabs{display:flex;gap:6px;flex-wrap:wrap}
-.index-tabs{margin-bottom:12px}.period-tabs{margin-bottom:15px}
-button{cursor:pointer;font-family:inherit}
-.index-tab,.period-tab{border:1px solid #ccd1d8;background:#f7f8fa;border-radius:5px}
-.index-tab{padding:9px 16px;font-size:14px}
-.period-tab{padding:6px 11px;font-size:12px}
-.index-tab.active{background:#222;color:#fff;border-color:#222}
-.period-tab.active{background:#e3e7ec;font-weight:bold}
-.chart-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.index-name{font-size:19px;font-weight:bold}
-.current-price{font-size:19px;font-weight:bold}
-.change{margin-left:8px;font-size:13px}
-.up{color:#d33}.down{color:#2878c8}
-.chart-container{position:relative;flex:1;min-height:300px;border-top:1px solid #eee;overflow:hidden}
-canvas{width:100%;height:100%;display:block}
-.side-panel{width:290px;padding:18px;display:flex;flex-direction:column}
-.side-title{font-size:18px;font-weight:bold;margin-bottom:16px}
-.hover-box,.compare-result{background:#f5f6f8;border:1px solid #dfe3e8;border-radius:6px;padding:14px}
-.hover-box{margin-bottom:18px}
-.hover-title,.result-label{font-size:12px;color:#777}
-.hover-price{font-size:23px;font-weight:bold;margin-top:6px}
-.hover-date{font-size:12px;color:#777;margin-top:5px}
-.compare-box{border-top:1px solid #e3e5e8;padding-top:18px}
-.compare-title{font-size:14px;font-weight:bold;margin-bottom:12px}
-.date-row{margin-bottom:10px}
-.date-row label{display:block;font-size:12px;color:#777;margin-bottom:4px}
-.date-row input{width:100%;padding:8px;border:1px solid #ccd1d8;border-radius:5px}
-.compare-button{width:100%;padding:9px;border:0;border-radius:5px;background:#222;color:#fff}
-.compare-button:hover{background:#444}
-.compare-result{margin-top:16px}
-.result-value{font-size:21px;font-weight:bold;margin-top:5px}
-.result-percent{font-size:13px;margin-top:4px}
-.footer{height:30px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#777}
-.status{color:#228844}
-.error{color:#c62828}
+.header{height:60px;display:flex;align-items:center;justify-content:space-between}.title{font-size:27px;font-weight:bold}.date{font-size:14px;color:#666}
+.main{flex:1;display:flex;gap:18px;min-height:0}.chart-section,.side-panel{background:#fff;border:1px solid #d5d9df;border-radius:10px}
+.chart-section{flex:1;padding:18px;display:flex;flex-direction:column;min-width:0}.side-panel{width:290px;padding:18px}
+.index-tabs,.period-tabs{display:flex;gap:6px;flex-wrap:wrap}.index-tabs{margin-bottom:12px}.period-tabs{margin-bottom:15px}
+button{cursor:pointer;font-family:inherit}.index-tab,.period-tab{border:1px solid #ccd1d8;background:#f7f8fa;border-radius:5px}
+.index-tab{padding:9px 16px;font-size:14px}.period-tab{padding:6px 11px;font-size:12px}
+.index-tab.active{background:#222;color:#fff;border-color:#222}.period-tab.active{background:#e3e7ec;font-weight:bold}
+.chart-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.index-name{font-size:19px;font-weight:bold}.current-price{font-size:19px;font-weight:bold}
+.change{margin-left:8px;font-size:13px}.up{color:#d33}.down{color:#2878c8}
+.chart-container{position:relative;flex:1;min-height:300px;border-top:1px solid #eee;overflow:hidden}canvas{width:100%;height:100%;display:block}
+.side-title{font-size:18px;font-weight:bold;margin-bottom:16px}.hover-box,.compare-result{background:#f5f6f8;border:1px solid #dfe3e8;border-radius:6px;padding:14px}
+.hover-box{margin-bottom:18px}.hover-title,.result-label{font-size:12px;color:#777}.hover-price{font-size:23px;font-weight:bold;margin-top:6px}.hover-date{font-size:12px;color:#777;margin-top:5px}
+.compare-box{border-top:1px solid #e3e5e8;padding-top:18px}.compare-title{font-size:14px;font-weight:bold;margin-bottom:12px}
+.date-row{margin-bottom:10px}.date-row label{display:block;font-size:12px;color:#777;margin-bottom:4px}.date-row input{width:100%;padding:8px;border:1px solid #ccd1d8;border-radius:5px}
+.compare-button{width:100%;padding:9px;border:0;border-radius:5px;background:#222;color:#fff}.compare-button:hover{background:#444}
+.compare-result{margin-top:16px}.result-value{font-size:21px;font-weight:bold;margin-top:5px}.result-percent{font-size:13px;margin-top:4px}
+.footer{height:30px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#777}.status{color:#228844}.error{color:#c62828}
 </style>
-
 </head>
 
 <body>
-
 <div class="dashboard">
 
 <div class="header">
-    <div class="title">📊 오늘의 진짜 정보판</div>
-    <div class="date" id="today"></div>
+<div class="title">📊 오늘의 진짜 정보판</div>
+<div class="date" id="today"></div>
 </div>
 
 <div class="main">
@@ -68,35 +41,35 @@ canvas{width:100%;height:100%;display:block}
 <section class="chart-section">
 
 <div class="index-tabs">
-    <button class="index-tab active" onclick="selectIndex('DOW',this)">다우존스</button>
-    <button class="index-tab" onclick="selectIndex('SP500',this)">S&P 500</button>
-    <button class="index-tab" onclick="selectIndex('NASDAQ',this)">NASDAQ</button>
-    <button class="index-tab" onclick="selectIndex('KOSPI',this)">KOSPI</button>
+<button class="index-tab active" onclick="selectIndex('DOW',this)">다우존스</button>
+<button class="index-tab" onclick="selectIndex('SP500',this)">S&P 500</button>
+<button class="index-tab" onclick="selectIndex('NASDAQ',this)">NASDAQ</button>
+<button class="index-tab" onclick="selectIndex('KOSPI',this)">KOSPI</button>
 </div>
 
 <div class="period-tabs">
-    <button class="period-tab active" onclick="selectPeriod('1분',this)">1분</button>
-    <button class="period-tab" onclick="selectPeriod('5분',this)">5분</button>
-    <button class="period-tab" onclick="selectPeriod('10분',this)">10분</button>
-    <button class="period-tab" onclick="selectPeriod('30분',this)">30분</button>
-    <button class="period-tab" onclick="selectPeriod('60분',this)">60분</button>
-    <button class="period-tab" onclick="selectPeriod('1일',this)">1일</button>
-    <button class="period-tab" onclick="selectPeriod('1주일',this)">1주일</button>
-    <button class="period-tab" onclick="selectPeriod('1달',this)">1달</button>
-    <button class="period-tab" onclick="selectPeriod('1년',this)">1년</button>
-    <button class="period-tab" onclick="selectPeriod('전체',this)">전체</button>
+<button class="period-tab active" onclick="selectPeriod('1분',this)">1분</button>
+<button class="period-tab" onclick="selectPeriod('5분',this)">5분</button>
+<button class="period-tab" onclick="selectPeriod('10분',this)">10분</button>
+<button class="period-tab" onclick="selectPeriod('30분',this)">30분</button>
+<button class="period-tab" onclick="selectPeriod('60분',this)">60분</button>
+<button class="period-tab" onclick="selectPeriod('1일',this)">1일</button>
+<button class="period-tab" onclick="selectPeriod('1주일',this)">1주일</button>
+<button class="period-tab" onclick="selectPeriod('1달',this)">1달</button>
+<button class="period-tab" onclick="selectPeriod('1년',this)">1년</button>
+<button class="period-tab" onclick="selectPeriod('전체',this)">전체</button>
 </div>
 
 <div class="chart-info">
-    <div>
-        <span class="index-name" id="indexName">다우존스</span>
-        <span class="change" id="change">-</span>
-    </div>
-    <div class="current-price" id="currentPrice">불러오는 중...</div>
+<div>
+<span class="index-name" id="indexName">다우존스</span>
+<span class="change" id="change">-</span>
+</div>
+<div class="current-price" id="currentPrice">불러오는 중...</div>
 </div>
 
 <div class="chart-container">
-    <canvas id="stockChart"></canvas>
+<canvas id="stockChart"></canvas>
 </div>
 
 </section>
@@ -106,15 +79,12 @@ canvas{width:100%;height:100%;display:block}
 <div class="side-title">📌 지수 정보</div>
 
 <div class="hover-box">
-    <div class="hover-title">차트 위치</div>
-    <div class="hover-price" id="hoverPrice">-</div>
-    <div class="hover-date" id="hoverDate">
-        차트에 마우스를 올려보세요
-    </div>
+<div class="hover-title">차트 위치</div>
+<div class="hover-price" id="hoverPrice">-</div>
+<div class="hover-date" id="hoverDate">차트에 마우스를 올려보세요</div>
 </div>
 
 <div class="compare-box">
-
 <div class="compare-title">📅 두 날짜 비교</div>
 
 <div class="date-row">
@@ -127,45 +97,28 @@ canvas{width:100%;height:100%;display:block}
 <input type="date" id="date2">
 </div>
 
-<button class="compare-button" onclick="compareDates()">
-두 날짜 비교
-</button>
+<button class="compare-button" onclick="compareDates()">두 날짜 비교</button>
 
 <div class="compare-result">
 <div class="result-label">변화량</div>
 <div class="result-value" id="compareValue">-</div>
 <div class="result-percent" id="comparePercent">-</div>
 </div>
-
 </div>
 
 </aside>
-
 </div>
 
 <div class="footer">
-<div>
-현재 선택:
-<strong id="footerIndex">다우존스</strong>
-/
-<strong id="footerPeriod">1분</strong>
-</div>
-
-<div class="status" id="status">
-● 데이터 불러오는 중...
-</div>
+<div>현재 선택: <strong id="footerIndex">다우존스</strong> / <strong id="footerPeriod">1분</strong></div>
+<div class="status" id="status">● 데이터 불러오는 중...</div>
 </div>
 
 </div>
 
 <script>
-
-let selectedIndex="DOW";
-let selectedPeriod="1분";
-let chartData=[];
-
-const canvas=document.getElementById("stockChart");
-const ctx=canvas.getContext("2d");
+let selectedIndex="DOW",selectedPeriod="1분",chartData=[];
+const canvas=document.getElementById("stockChart"),ctx=canvas.getContext("2d");
 
 const indexes={
 DOW:{name:"다우존스",symbol:"%5EDJI"},
@@ -187,172 +140,78 @@ const periods={
 "전체":{range:"max",interval:"1mo"}
 };
 
-function setToday(){
+const price=v=>Number(v).toLocaleString("ko-KR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const date=t=>new Date(t*1000);
+const dateText=t=>date(t).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
 
-const now=new Date();
-
-document.getElementById("today").textContent=
-now.toLocaleDateString("ko-KR",{
-year:"numeric",
-month:"2-digit",
-day:"2-digit"
-});
-
-}
-
-function formatPrice(v){
-
-return Number(v).toLocaleString("ko-KR",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-});
-
-}
-
-function formatDate(ts){
-
-const d=new Date(ts*1000);
-
-return d.toLocaleString("ko-KR",{
-month:"2-digit",
-day:"2-digit",
-hour:"2-digit",
-minute:"2-digit"
-});
-
-}
+document.getElementById("today").textContent=new Date().toLocaleDateString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit"});
 
 async function loadData(){
 
-const info=indexes[selectedIndex];
-const p=periods[selectedPeriod];
+const p=periods[selectedPeriod],s=indexes[selectedIndex].symbol;
+const url=`https://query1.finance.yahoo.com/v8/finance/chart/${s}?range=${p.range}&interval=${p.interval}&includePrePost=false`;
 
-const url=
-"https://query1.finance.yahoo.com/v8/finance/chart/"+
-info.symbol+
-"?range="+p.range+
-"&interval="+p.interval+
-"&includePrePost=false";
-
-document.getElementById("status").textContent=
-"● 실제 데이터 불러오는 중...";
-
+document.getElementById("status").textContent="● 실제 데이터 불러오는 중...";
 document.getElementById("status").className="status";
-
-document.getElementById("currentPrice").textContent=
-"불러오는 중...";
+document.getElementById("currentPrice").textContent="불러오는 중...";
 
 try{
 
-const response=await fetch(url);
+const r=await fetch(url);
+if(!r.ok)throw Error("API 오류");
 
-if(!response.ok){
-throw new Error("HTTP "+response.status);
-}
+const j=await r.json(),x=j.chart.result?.[0];
+if(!x)throw Error("데이터 없음");
 
-const json=await response.json();
-const result=json.chart.result?.[0];
+const ts=x.timestamp||[],vs=x.indicators.quote[0].close||[];
 
-if(!result){
-throw new Error("데이터 없음");
-}
+chartData=ts.map((t,i)=>({time:t,value:vs[i]}))
+.filter(x=>x.value!==null&&Number.isFinite(x.value));
 
-const timestamps=result.timestamp||[];
-const values=result.indicators.quote[0].close||[];
+if(!chartData.length)throw Error("유효한 데이터 없음");
 
-chartData=timestamps.map((time,i)=>({
-time:time,
-value:values[i]
-})).filter(x=>x.value!==null&&Number.isFinite(x.value));
+drawChart();updateCurrent();
+document.getElementById("status").textContent="● 실제 데이터 연결됨";
 
-if(!chartData.length){
-throw new Error("유효한 데이터 없음");
-}
+}catch(e){
 
-drawChart();
-updateCurrent();
-
-document.getElementById("status").textContent=
-"● 실제 데이터 연결됨";
-
-}catch(error){
-
-console.error(error);
-
+console.error(e);
 chartData=[];
-
 ctx.clearRect(0,0,canvas.width,canvas.height);
-
-document.getElementById("currentPrice").textContent=
-"데이터 없음";
-
+document.getElementById("currentPrice").textContent="데이터 없음";
 document.getElementById("hoverPrice").textContent="-";
-
-document.getElementById("hoverDate").textContent=
-"실제 데이터를 가져오지 못했습니다";
-
-document.getElementById("status").textContent=
-"● 데이터 불러오기 실패";
-
+document.getElementById("hoverDate").textContent="실제 데이터를 가져오지 못했습니다";
+document.getElementById("status").textContent="● 데이터 불러오기 실패";
 document.getElementById("status").className="status error";
 
 }
-
 }
 
 function updateCurrent(){
 
 if(!chartData.length)return;
 
-const last=chartData.at(-1);
-const previous=chartData.length>1?
-chartData.at(-2):null;
+const a=chartData.at(-1),b=chartData.at(-2);
+document.getElementById("currentPrice").textContent=price(a.value);
 
-document.getElementById("currentPrice").textContent=
-formatPrice(last.value);
+if(b){
 
-if(previous){
-
-const diff=last.value-previous.value;
-const percent=diff/previous.value*100;
-
-const el=document.getElementById("change");
-
-el.textContent=
-(diff>=0?"▲ +":"▼ ")+
-percent.toFixed(2)+"%";
-
-el.className=
-"change "+(diff>=0?"up":"down");
+const d=a.value-b.value,p=d/b.value*100,e=document.getElementById("change");
+e.textContent=(d>=0?"▲ +":"▼ ")+p.toFixed(2)+"%";
+e.className="change "+(d>=0?"up":"down");
 
 }
-
 }
 
 function drawChart(){
 
-const w=canvas.parentElement.clientWidth;
-const h=canvas.parentElement.clientHeight;
-
-canvas.width=w;
-canvas.height=h;
-
-ctx.clearRect(0,0,w,h);
-
+const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+canvas.width=w;canvas.height=h;ctx.clearRect(0,0,w,h);
 if(!chartData.length)return;
 
 const values=chartData.map(x=>x.value);
-
-const max=Math.max(...values);
-const min=Math.min(...values);
-
-const L=70;
-const R=20;
-const T=20;
-const B=45;
-
-const cw=w-L-R;
-const ch=h-T-B;
+const max=Math.max(...values),min=Math.min(...values);
+const L=70,R=20,T=20,B=45,cw=w-L-R,ch=h-T-B;
 
 ctx.font="11px Arial";
 ctx.lineWidth=1;
@@ -364,7 +223,7 @@ ctx.fillStyle="#777";
 for(let i=0;i<5;i++){
 
 const y=T+ch*i/4;
-const price=max-(max-min)*i/4;
+const v=max-(max-min)*i/4;
 
 ctx.beginPath();
 ctx.moveTo(L,y);
@@ -372,26 +231,17 @@ ctx.lineTo(w-R,y);
 ctx.stroke();
 
 ctx.textAlign="right";
-
-ctx.fillText(
-formatPrice(price),
-L-8,
-y+4
-);
+ctx.fillText(price(v),L-8,y+4);
 
 }
 
-/* 세로 눈금 = 실제 날짜 */
+/* 24시간 눈금 */
 
-const count=Math.min(7,chartData.length);
+const hours=["00:00","04:00","08:00","12:00","16:00","20:00","24:00"];
 
-for(let i=0;i<count;i++){
+hours.forEach((hText,i)=>{
 
-const index=
-Math.round(i*(chartData.length-1)/(count-1));
-
-const x=
-L+cw*index/(chartData.length-1);
+const x=L+cw*i/6;
 
 ctx.beginPath();
 ctx.moveTo(x,T);
@@ -399,57 +249,146 @@ ctx.lineTo(x,h-B);
 ctx.stroke();
 
 ctx.textAlign="center";
+ctx.fillText(hText,x,h-15);
 
-ctx.fillText(
-formatDate(chartData[index].time),
-x,
-h-15
-);
+});
 
-}
+/* 실제 timestamp를 24시간 좌표로 변환 */
 
-/* 실제 데이터 선 */
+const first=date(chartData[0].time);
+const y=first.getFullYear(),m=first.getMonth(),d=first.getDate();
+
+const start=new Date(y,m,d,0,0,0).getTime();
+const end=start+86400000;
 
 ctx.beginPath();
 
-chartData.forEach((item,i)=>{
+let started=false;
 
-const x=
-L+cw*i/(chartData.length-1);
+chartData.forEach(item=>{
 
-const y=
-T+(max-item.value)/(max-min||1)*ch;
+const t=item.time*1000;
 
-if(i===0){
-ctx.moveTo(x,y);
+/* 오늘의 24시간 범위 안에 있는 데이터만 표시 */
+
+if(t<start||t>end)return;
+
+const x=L+((t-start)/(end-start))*cw;
+const py=T+(max-item.value)/(max-min||1)*ch;
+
+if(!started){
+ctx.moveTo(x,py);
+started=true;
 }else{
-ctx.lineTo(x,y);
+ctx.lineTo(x,py);
 }
 
 });
 
 ctx.strokeStyle="#222";
 ctx.lineWidth=2;
-ctx.stroke();
 
-canvas.chartArea={L,R,T,B,cw,ch,min,max};
+if(started)ctx.stroke();
+
+canvas.chartArea={L,R,T,B,cw,ch,start,end};
 
 }
+
+canvas.addEventListener("mousemove",e=>{
+
+if(!chartData.length||!canvas.chartArea)return;
+
+const r=canvas.getBoundingClientRect();
+const mx=e.clientX-r.left;
+const {L,cw,start,end}=canvas.chartArea;
+
+const ratio=Math.max(0,Math.min(1,(mx-L)/cw));
+const target=start+ratio*(end-start);
+
+let nearest=chartData[0];
+let dist=Math.abs(nearest.time*1000-target);
+
+for(const item of chartData){
+
+const d=Math.abs(item.time*1000-target);
+
+if(d<dist){
+nearest=item;
+dist=d;
+}
+
+}
+
+/* 실제 데이터 위치 */
+
+const dataX=
+L+
+((nearest.time*1000-start)/(end-start))*cw;
+
+/* 기존 차트 다시 그리기 */
+
+drawChart();
+
+/* 세로 가이드선 */
+
+ctx.beginPath();
+ctx.moveTo(dataX,canvas.chartArea.T);
+ctx.lineTo(dataX,canvas.height-canvas.chartArea.B);
+
+ctx.strokeStyle="#888";
+ctx.lineWidth=1;
+ctx.setLineDash([5,5]);
+ctx.stroke();
+ctx.setLineDash([]);
+
+/* 선택된 실제 데이터 위치 표시 */
+
+const values=chartData.map(x=>x.value);
+const max=Math.max(...values);
+const min=Math.min(...values);
+
+const y=
+canvas.chartArea.T+
+(max-nearest.value)/(max-min||1)*
+canvas.chartArea.ch;
+
+ctx.beginPath();
+ctx.arc(dataX,y,4,0,Math.PI*2);
+
+ctx.fillStyle="#222";
+ctx.fill();
+
+/* 오른쪽 정보 */
+
+document.getElementById("hoverPrice").textContent=
+price(nearest.value);
+
+document.getElementById("hoverDate").textContent=
+dateText(nearest.time);
+
+});
+
+canvas.addEventListener("mouseleave",()=>{
+
+drawChart();
+
+document.getElementById("hoverPrice").textContent="-";
+
+document.getElementById("hoverDate").textContent=
+"차트에 마우스를 올려보세요";
+
+});
+
 
 function selectIndex(index,button){
 
 selectedIndex=index;
 
-document.querySelectorAll(".index-tab")
-.forEach(x=>x.classList.remove("active"));
-
+document.querySelectorAll(".index-tab").forEach(x=>x.classList.remove("active"));
 button.classList.add("active");
 
-document.getElementById("indexName").textContent=
-indexes[index].name;
-
-document.getElementById("footerIndex").textContent=
-indexes[index].name;
+document.getElementById("indexName").textContent=indexes[index].name;
+document.getElementById("footerIndex").textContent=indexes[index].name;
 
 loadData();
 
@@ -459,154 +398,61 @@ function selectPeriod(period,button){
 
 selectedPeriod=period;
 
-document.querySelectorAll(".period-tab")
-.forEach(x=>x.classList.remove("active"));
-
+document.querySelectorAll(".period-tab").forEach(x=>x.classList.remove("active"));
 button.classList.add("active");
 
-document.getElementById("footerPeriod").textContent=
-period;
-
+document.getElementById("footerPeriod").textContent=period;
 loadData();
 
 }
-
-canvas.addEventListener("mousemove",e=>{
-
-if(!chartData.length)return;
-
-const rect=canvas.getBoundingClientRect();
-
-const x=e.clientX-rect.left;
-
-const {L,cw}=canvas.chartArea;
-
-let index=
-Math.round(
-((x-L)/cw)*(chartData.length-1)
-);
-
-index=Math.max(
-0,
-Math.min(chartData.length-1,index)
-);
-
-const item=chartData[index];
-
-document.getElementById("hoverPrice").textContent=
-formatPrice(item.value);
-
-document.getElementById("hoverDate").textContent=
-formatDate(item.time);
-
-});
-
-canvas.addEventListener("mouseleave",()=>{
-
-document.getElementById("hoverPrice").textContent="-";
-
-document.getElementById("hoverDate").textContent=
-"차트에 마우스를 올려보세요";
-
-});
 
 async function compareDates(){
 
 const d1=document.getElementById("date1").value;
 const d2=document.getElementById("date2").value;
 
-if(!d1||!d2){
-alert("두 날짜를 선택해주세요.");
-return;
-}
-
-if(d1===d2){
-alert("서로 다른 날짜를 선택해주세요.");
-return;
-}
+if(!d1||!d2)return alert("두 날짜를 선택해주세요.");
+if(d1===d2)return alert("서로 다른 날짜를 선택해주세요.");
 
 try{
 
-const info=indexes[selectedIndex];
+const s=indexes[selectedIndex].symbol;
+const a=Math.floor(new Date(d1+"T00:00:00").getTime()/1000);
+const b=Math.floor(new Date(d2+"T23:59:59").getTime()/1000);
 
-const start=
-Math.floor(
-new Date(d1+"T00:00:00").getTime()/1000
-);
+const url=`https://query1.finance.yahoo.com/v8/finance/chart/${s}?period1=${a}&period2=${b}&interval=1d&includePrePost=false`;
 
-const end=
-Math.floor(
-new Date(d2+"T23:59:59").getTime()/1000
-);
+const r=await fetch(url);
+if(!r.ok)throw Error("비교 API 오류");
 
-const url=
-"https://query1.finance.yahoo.com/v8/finance/chart/"+
-info.symbol+
-"?period1="+start+
-"&period2="+end+
-"&interval=1d"+
-"&includePrePost=false";
+const j=await r.json(),x=j.chart.result?.[0];
+if(!x)throw Error("비교 데이터 없음");
 
-const response=await fetch(url);
+const ts=x.timestamp||[],vs=x.indicators.quote[0].close||[];
+const data=ts.map((t,i)=>({time:t,value:vs[i]}))
+.filter(x=>x.value!==null);
 
-if(!response.ok){
-throw new Error("비교 데이터 오류");
-}
+if(data.length<2)return alert("선택한 두 날짜의 실제 데이터를 찾을 수 없습니다.");
 
-const json=await response.json();
-const result=json.chart.result?.[0];
+const first=data[0].value,last=data.at(-1).value;
+const diff=last-first,p=diff/first*100;
 
-if(!result)throw new Error("비교 데이터 없음");
+document.getElementById("compareValue").textContent=(diff>=0?"+":"")+price(diff);
 
-const times=result.timestamp||[];
-const values=result.indicators.quote[0].close||[];
+const e=document.getElementById("comparePercent");
+e.textContent=(diff>=0?"▲ +":"▼ ")+p.toFixed(2)+"%";
+e.className="result-percent "+(diff>=0?"up":"down");
 
-const data=times.map((t,i)=>({
-time:t,
-value:values[i]
-})).filter(x=>x.value!==null);
+}catch(e){
 
-if(data.length<2){
-alert("선택한 두 날짜의 실제 데이터를 찾을 수 없습니다.");
-return;
-}
-
-const first=data[0];
-const last=data[data.length-1];
-
-const diff=last.value-first.value;
-const percent=diff/first.value*100;
-
-document.getElementById("compareValue").textContent=
-(diff>=0?"+":"")+formatPrice(diff);
-
-const p=document.getElementById("comparePercent");
-
-p.textContent=
-(diff>=0?"▲ +":"▼ ")+
-percent.toFixed(2)+"%";
-
-p.className=
-"result-percent "+(diff>=0?"up":"down");
-
-}catch(error){
-
-console.error(error);
-
-document.getElementById("compareValue").textContent=
-"비교 실패";
-
-document.getElementById("comparePercent").textContent=
-"실제 데이터를 가져오지 못했습니다";
+console.error(e);
+document.getElementById("compareValue").textContent="비교 실패";
+document.getElementById("comparePercent").textContent="실제 데이터를 가져오지 못했습니다";
 
 }
-
 }
 
 window.addEventListener("resize",drawChart);
-
-setToday();
-
 loadData();
 
 </script>
