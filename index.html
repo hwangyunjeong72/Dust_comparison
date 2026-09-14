@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘의 진짜 정보판</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:#f4f7fb;color:#222}header{background:#183b56;color:#fff;text-align:center;padding:20px}header h1{margin:0 0 6px}main{max-width:1450px;margin:15px auto;padding:0 15px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:15px}.box{background:#fff;border:1px solid #d9e1e8;border-radius:9px;padding:15px;margin-bottom:15px}.controls{display:flex;gap:8px;flex-wrap:wrap}select,button{padding:9px;border:1px solid #ccc;border-radius:6px;background:#fff}button{background:#183b56;color:#fff;cursor:pointer}.recordBtn{width:100%;margin-top:12px;background:#16834b;font-size:16px;font-weight:bold}.recordBtn:hover{background:#116b3d}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.card{border:1px solid #ddd;border-radius:7px;padding:11px}.num{font-size:24px;font-weight:bold}.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}.compare>div{border:1px solid #ddd;border-radius:7px;padding:12px}.small{font-size:12px;color:#777}.up{color:#d32f2f}.down{color:#16834b}.barbg{height:15px;background:#eee;border-radius:8px}.bar{height:100%;background:#4b82b8;border-radius:8px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:center}th{background:#f1f4f7}.mapbox{position:relative;width:100%;height:570px;background:#f6f9fb;border-radius:8px;overflow:hidden}.kmap{width:100%;height:100%;display:block}.mk{cursor:pointer}.mk circle{stroke:#fff;stroke-width:4}.mk.sel circle{stroke:#111;stroke-width:6}.mk text{font-size:14px;font-weight:bold;fill:#222;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round;pointer-events:auto}.mk:hover circle{stroke:#111;stroke-width:5}.good{fill:#20a464}.normal{fill:#e5b62f}.bad{fill:#e05252}.verybad{fill:#8d4cad}.none{fill:#999}.info{border:1px solid #ddd;border-radius:7px;padding:12px}.infoTitle{font-size:21px;font-weight:bold}.infoValue{font-size:30px;font-weight:bold}.record{padding:8px;border-bottom:1px solid #eee}.record b{color:#183b56}.record .grade{font-weight:bold}.empty{text-align:center;padding:15px;color:#777}@media(max-width:900px){.layout{grid-template-columns:1fr}}@media(max-width:600px){.grid{grid-template-columns:1fr 1fr}.compare{grid-template-columns:1fr}.mapbox{height:500px}}
+</style>
+</head>
+
+<body>
+<header><h1>🇰🇷 오늘의 진짜 정보판</h1><div>전국 미세먼지 실시간 · 어제와 오늘 비교</div></header>
+
+<main><div class="layout">
+
+<section>
+
+<div class="box">
+<b>데이터 상태</b>
+<div id="status">⏳ 데이터를 불러오는 중...</div>
+<div id="time" class="small"></div>
+<div class="small">출처: Open-Meteo Air Quality API</div>
+<div class="small">※ 데이터가 없으면 임의의 값을 표시하지 않습니다.</div>
+</div>
+
+<div class="controls">
+<select id="type"><option value="pm10">미세먼지 PM10</option><option value="pm2_5">초미세먼지 PM2.5</option></select>
+<select id="region"><option value="all">전국</option></select>
+<button onclick="load()">🔄 새로고침</button>
+</div>
+
+<div class="grid">
+<div class="card">전국 평균<div id="avg" class="num">-</div><small>㎍/㎥</small></div>
+<div class="card">가장 좋은 지역<div id="best" class="num">-</div></div>
+<div class="card">가장 나쁜 지역<div id="worst" class="num">-</div></div>
+<div class="card">정상 데이터<div id="count" class="num">-</div></div>
+</div>
+
+<div class="box">
+<h2>📊 어제 ↔ 오늘</h2>
+<div class="compare">
+<div><b id="yd"></b><div id="yv" class="num">-</div>㎍/㎥</div>
+<div><b id="td"></b><div id="tv" class="num">-</div><div id="diff"></div></div>
+</div>
+</div>
+
+<div class="box">
+<h2>🇰🇷 지역별 미세먼지</h2>
+<div style="overflow:auto">
+<table>
+<thead><tr><th>지역</th><th>현재</th><th>등급</th><th>어제</th><th>오늘</th><th>변화</th><th>상태</th></tr></thead>
+<tbody id="table"><tr><td colspan="7">불러오는 중...</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="box">
+<h2>📈 오늘 평균</h2>
+<div id="chart">불러오는 중...</div>
+</div>
+
+<!-- 날짜별 기록 -->
+<div class="box">
+<h2>🗓 날짜별 기록</h2>
+<div class="small">지도에서 지역을 선택한 후 「기록하기」를 누르면 저장됩니다.</div>
+<div id="history">기록 없음</div>
+</div>
+
+</section>
+
+<section>
+
+<div class="box">
+<h2>🇰🇷 대한민국 미세먼지 지도</h2>
+
+<div class="mapbox">
+<svg class="kmap" viewBox="0 0 800 759" preserveAspectRatio="xMidYMid meet">
+<image href="korea.svg" x="0" y="0" width="800" height="759"/>
+
+<g class="mk" id="m서울" transform="translate(258 148)" onclick="pick('서울')"><text y="-14">서울</text><circle r="10"/></g>
+<g class="mk" id="m인천" transform="translate(228 163)" onclick="pick('인천')"><text y="-14">인천</text><circle r="10"/></g>
+<g class="mk" id="m경기" transform="translate(318 169)" onclick="pick('경기')"><text y="-14">경기</text><circle r="10"/></g>
+<g class="mk" id="m강원" transform="translate(388 113)" onclick="pick('강원')"><text y="-14">강원</text><circle r="10"/></g>
+<g class="mk" id="m충북" transform="translate(315 277)" onclick="pick('충북')"><text y="-14">충북</text><circle r="10"/></g>
+<g class="mk" id="m충남" transform="translate(239 293)" onclick="pick('충남')"><text y="-14">충남</text><circle r="10"/></g>
+<g class="mk" id="m세종" transform="translate(292 298)" onclick="pick('세종')"><text y="-14">세종</text><circle r="10"/></g>
+<g class="mk" id="m대전" transform="translate(303 316)" onclick="pick('대전')"><text y="-14">대전</text><circle r="10"/></g>
+<g class="mk" id="m경북" transform="translate(468 297)" onclick="pick('경북')"><text y="-14">경북</text><circle r="10"/></g>
+<g class="mk" id="m전북" transform="translate(277 404)" onclick="pick('전북')"><text y="-14">전북</text><circle r="10"/></g>
+<g class="mk" id="m대구" transform="translate(437 383)" onclick="pick('대구')"><text y="-14">대구</text><circle r="10"/></g>
+<g class="mk" id="m울산" transform="translate(515 429)" onclick="pick('울산')"><text y="-14">울산</text><circle r="10"/></g>
+<g class="mk" id="m광주" transform="translate(244 481)" onclick="pick('광주')"><text y="-14">광주</text><circle r="10"/></g>
+<g class="mk" id="m경남" transform="translate(394 439)" onclick="pick('경남')"><text y="-14">경남</text><circle r="10"/></g>
+<g class="mk" id="m전남" transform="translate(260 521)" onclick="pick('전남')"><text y="-14">전남</text><circle r="10"/></g>
+<g class="mk" id="m부산" transform="translate(489 478)" onclick="pick('부산')"><text y="-14">부산</text><circle r="10"/></g>
+<g class="mk" id="m제주" transform="translate(209 711)" onclick="pick('제주')"><text y="-14">제주</text><circle r="10"/></g>
+
+</svg>
+</div>
+</div>
+
+<!-- 선택 지역 -->
+<div class="box">
+<h3>📍 선택 지역</h3>
+
+<div class="info">
+<div id="infoTitle" class="infoTitle">전국</div>
+<div class="small">현재 미세먼지</div>
+<div id="infoValue" class="infoValue">-</div>
+<div id="infoGrade">지역을 선택해주세요.</div>
+<div id="infoCompare" class="small">-</div>
+
+<button class="recordBtn" onclick="recordNow()">📝 기록하기</button>
+</div>
+
+</div>
+
+</section>
+</div></main>
+
+<script>
+const R=[
+["서울",37.5665,126.978],["부산",35.1796,129.0756],["대구",35.8714,128.6014],
+["인천",37.4563,126.7052],["광주",35.1595,126.8526],["대전",36.3504,127.3845],
+["울산",35.5384,129.3114],["세종",36.48,127.289],["경기",37.4138,127.5183],
+["강원",37.8228,128.1555],["충북",36.6357,127.4917],["충남",36.5184,126.8],
+["전북",35.7175,127.153],["전남",34.8679,126.991],["경북",36.4919,128.8889],
+["경남",35.4606,128.2132],["제주",33.4996,126.5312]];
+
+let DATA=[];
+
+R.forEach(x=>region.innerHTML+=`<option>${x[0]}</option>`);
+
+const date=n=>{
+let d=new Date();
+d.setDate(d.getDate()+n);
+return d.toISOString().slice(0,10)
+};
+
+function grade(v,t){
+if(v==null)return["데이터 없음","none"];
+if(t=="pm2_5")
+return v<=15?["좋음","good"]:v<=35?["보통","normal"]:v<=75?["나쁨","bad"]:["매우나쁨","verybad"];
+return v<=30?["좋음","good"]:v<=80?["보통","normal"]:v<=150?["나쁨","bad"]:["매우나쁨","verybad"];
+}
+
+async function get(x,t){
+let u=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${x[1]}&longitude=${x[2]}&hourly=${t}&start_date=${date(-1)}&end_date=${date(0)}&timezone=Asia%2FSeoul`;
+let r=await fetch(u);
+if(!r.ok)throw Error("API");
+let d=await r.json(),a=d.hourly[t],tm=d.hourly.time;
+let day=n=>{
+let z=a.filter((v,i)=>tm[i].startsWith(date(n))&&v!=null);
+return z.length?z.reduce((a,b)=>a+b,0)/z.length:null
+};
+return{name:x[0],cur:[...a].reverse().find(v=>v!=null)??null,y:day(-1),t:day(0),ok:true};
+}
+
+async function load(){
+
+status.textContent="⏳ 전국 데이터를 가져오는 중...";
+table.innerHTML=`<tr><td colspan="7">불러오는 중...</td></tr>`;
+
+DATA=[];
+
+for(let x of R){
+try{DATA.push(await get(x,type.value))}
+catch(e){DATA.push({name:x[0],cur:null,y:null,t:null,ok:false})}
+}
+
+render();
+}
+
+function render(){
+
+let good=DATA.filter(x=>x.cur!=null);
+let ys=good.filter(x=>x.y!=null);
+let ts=good.filter(x=>x.t!=null);
+
+let ar=good.length?good.reduce((a,x)=>a+x.cur,0)/good.length:null;
+
+avg.textContent=ar==null?"-":ar.toFixed(1);
+count.textContent=good.length+"/17";
+
+if(good.length){
+let s=[...good].sort((a,b)=>a.cur-b.cur);
+best.textContent=s[0].name;
+worst.textContent=s.at(-1).name;
+}else{
+best.textContent=worst.textContent="-";
+}
+
+let selected=region.value=="all"?DATA:DATA.filter(x=>x.name==region.value);
+
+table.innerHTML="";
+
+selected.forEach(x=>{
+
+let g=grade(x.cur,type.value);
+let c=x.y!=null&&x.t!=null?x.t-x.y:null;
+
+let ch=c==null?"-":c>.5?
+`<span class="up">▲ ${c.toFixed(1)}</span>`:
+c<-.5?
+`<span class="down">▼ ${Math.abs(c).toFixed(1)}</span>`:
+"━ 동일";
+
+table.innerHTML+=`
+<tr>
+<td><b>${x.name}</b></td>
+<td>${x.cur==null?"-":x.cur.toFixed(1)}</td>
+<td class="${g[1]}">${g[0]}</td>
+<td>${x.y==null?"-":x.y.toFixed(1)}</td>
+<td>${x.t==null?"-":x.t.toFixed(1)}</td>
+<td>${ch}</td>
+<td>${x.ok?"정상":"데이터 없음"}</td>
+</tr>`;
+});
+
+let ya=ys.length?ys.reduce((a,x)=>a+x.y,0)/ys.length:null;
+let ta=ts.length?ts.reduce((a,x)=>a+x.t,0)/ts.length:null;
+
+yd.textContent="어제 · "+date(-1);
+td.textContent="오늘 · "+date(0);
+yv.textContent=ya==null?"-":ya.toFixed(1);
+tv.textContent=ta==null?"-":ta.toFixed(1);
+
+if(ya!=null&&ta!=null){
+
+let d=ta-ya;
+
+diff.className=d>.5?"up":d<-.5?"down":"";
+
+diff.textContent=d>.5?
+`▲ ${d.toFixed(1)}㎍/㎥ 증가`:
+d<-.5?
+`▼ ${Math.abs(d).toFixed(1)}㎍/㎥ 감소`:
+"━ 어제와 비슷";
+
+}else diff.textContent="비교할 데이터 없음";
+
+let mx=Math.max(...ts.map(x=>x.t),1);
+
+chart.innerHTML=ts.map(x=>`
+<div style="display:grid;grid-template-columns:60px 1fr 55px;gap:7px;margin:7px 0">
+<span>${x.name}</span>
+<div class="barbg"><div class="bar" style="width:${x.t/mx*100}%"></div></div>
+<b>${x.t.toFixed(1)}</b>
+</div>`).join("")||"그래프 데이터 없음";
+
+updateMarkers();
+showSelected();
+
+status.textContent=good.length==17?
+"✅ 전국 17개 지역 데이터를 정상적으로 가져왔습니다.":
+`⚠️ ${good.length}/17개 지역 성공 · 데이터가 없는 지역은 임의 표시하지 않았습니다.`;
+
+time.textContent="마지막 확인: "+new Date().toLocaleString("ko-KR");
+}
+
+function updateMarkers(){
+
+DATA.forEach(x=>{
+
+let m=document.getElementById("m"+x.name);
+
+if(!m)return;
+
+m.classList.remove("good","normal","bad","verybad","none");
+
+m.classList.add(grade(x.cur,type.value)[1]);
+
+});
+}
+
+function clearSelect(){
+
+document.querySelectorAll(".mk").forEach(m=>{
+m.classList.remove("sel");
+});
+
+}
+
+function pick(name){
+
+region.value=name;
+
+clearSelect();
+
+let m=document.getElementById("m"+name);
+
+if(m)m.classList.add("sel");
+
+showSelected();
+
+}
+
+function showSelected(){
+
+let name=region.value;
+
+clearSelect();
+
+if(name=="all"){
+
+infoTitle.textContent="전국";
+infoValue.textContent="-";
+infoGrade.textContent="지역을 선택해주세요.";
+infoCompare.textContent="-";
+
+return;
+}
+
+let m=document.getElementById("m"+name);
+
+if(m)m.classList.add("sel");
+
+let x=DATA.find(x=>x.name==name);
+
+infoTitle.textContent=name;
+
+if(!x||x.cur==null){
+
+infoValue.textContent="-";
+infoGrade.textContent="데이터 없음";
+infoCompare.textContent="현재 데이터를 가져오지 못했습니다.";
+
+return;
+}
+
+infoValue.textContent=x.cur.toFixed(1);
+
+let g=grade(x.cur,type.value);
+
+infoGrade.textContent=`${g[0]} · ${x.cur.toFixed(1)} ㎍/㎥`;
+
+if(x.y!=null){
+
+let d=x.t-x.y;
+
+infoCompare.textContent=
+d>0?
+`어제보다 ${d.toFixed(1)} 증가`:
+d<0?
+`어제보다 ${Math.abs(d).toFixed(1)} 감소`:
+"어제와 비슷";
+
+}else{
+
+infoCompare.textContent="어제 데이터 없음";
+
+}
+
+}
+
+/* ⭐ 새 기록 기능 */
+function recordNow(){
+
+let name=region.value;
+
+if(name=="all"){
+
+alert("먼저 지도에서 지역을 선택해주세요.");
+
+return;
+}
+
+let x=DATA.find(x=>x.name==name);
+
+if(!x||x.cur==null){
+
+alert("현재 해당 지역의 미세먼지 데이터를 가져오지 못했습니다.");
+
+return;
+}
+
+let g=grade(x.cur,type.value);
+
+let h=JSON.parse(localStorage.dustRecords||"[]");
+
+h.unshift({
+date:date(0),
+region:name,
+value:+x.cur.toFixed(1),
+grade:g[0],
+type:type.value
+});
+
+localStorage.dustRecords=JSON.stringify(h.slice(0,100));
+
+showHistory();
+
+alert(`${name} 기록이 저장되었습니다.`);
+
+}
+
+/* ⭐ 저장된 기록 표시 */
+function showHistory(){
+
+let h=JSON.parse(localStorage.dustRecords||"[]");
+
+if(!h.length){
+
+history.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';
+
+return;
+}
+
+history.innerHTML=h.map((x,i)=>`
+
+<div class="record">
+
+<b>${x.date}</b>
+ · ${x.region}
+ · <b>${x.value} ㎍/㎥</b>
+ · <span class="grade">${x.grade}</span>
+
+</div>
+
+`).join("");
+
+}
+
+type.onchange=load;
+
+region.onchange=()=>{
+
+if(region.value=="all"){
+
+clearSelect();
+
+showSelected();
+
+return;
+
+}
+
+pick(region.value);
+
+};
+
+showHistory();
+
+load();
+</script>
+
+</body>
+</html>
