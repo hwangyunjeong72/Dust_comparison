@@ -1,0 +1,258 @@
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘의 진짜 미세먼지 정보판</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef3f7;font-family:Arial,"Noto Sans KR",sans-serif;color:#222}header{height:72px;background:#183b56;color:#fff;text-align:center;padding:20px;font-size:26px;font-weight:bold}main{max-width:1500px;margin:auto;padding:14px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}.panel,.box{background:#fff;border:1px solid #d7e0e7;border-radius:9px;padding:14px}.box{margin-bottom:12px}.controls{display:flex;gap:7px}select,button{padding:9px;border:1px solid #ccc;border-radius:6px;background:#fff}button{background:#183b56;color:#fff;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.card{border:1px solid #ddd;border-radius:7px;padding:10px}.num{font-size:24px;font-weight:bold}.compare{display:grid;grid-template-columns:1fr 1fr;gap:8px}.compare>div{border:1px solid #ddd;border-radius:7px;padding:12px}.small{font-size:12px;color:#777}.barbg{height:15px;background:#eee;border-radius:8px}.bar{height:100%;background:#4b82b8;border-radius:8px}.up{color:#d32f2f}.down{color:#16834b}.mapbox{position:relative;height:570px;background:#f6f9fb;border-radius:8px;overflow:hidden}.map{width:100%;height:100%;object-fit:contain}.marker{position:absolute;width:20px;height:20px;border:3px solid #fff;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;box-shadow:0 1px 4px #555;transition:.15s}.marker:hover{transform:translate(-50%,-50%) scale(1.3);z-index:5}.marker.sel{border-color:#111;box-shadow:0 0 0 3px #fff,0 0 0 5px #111;z-index:6}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px}.lg{display:flex;align-items:center;gap:4px}.dot{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid #777}.good{background:#20a464}.normal{background:#e5b62f}.bad{background:#e05252}.verybad{background:#8d4cad}.none{background:#999}.infoTitle{font-size:22px;font-weight:bold}.infoValue{font-size:32px;font-weight:bold}.history{max-height:100px;overflow:auto}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.mapbox{height:500px}}@media(max-width:600px){.grid{grid-template-columns:1fr}.compare{grid-template-columns:1fr}header{font-size:20px}}
+</style>
+</head>
+<body>
+
+<header>🇰🇷 오늘의 진짜 미세먼지 정보판</header>
+
+<main><div class="layout">
+
+<section class="panel">
+
+<div class="box">
+<div class="controls">
+<select id="type"><option value="pm10">미세먼지 PM10</option><option value="pm2_5">초미세먼지 PM2.5</option></select>
+<select id="region"><option value="all">전국</option></select>
+<button onclick="load()">🔄 새로고침</button>
+</div>
+<div id="status" class="small">⏳ 데이터를 불러오는 중...</div>
+<div id="time" class="small"></div>
+</div>
+
+<div class="grid">
+<div class="card">전국 평균<div id="avg" class="num">-</div><small>㎍/㎥</small></div>
+<div class="card">가장 좋은 지역<div id="best" class="num">-</div></div>
+<div class="card">가장 나쁜 지역<div id="worst" class="num">-</div></div>
+</div>
+
+<div class="box">
+<h3>📊 어제 ↔ 오늘</h3>
+<div class="compare">
+<div><b id="yd">어제</b><div id="yv" class="num">-</div>㎍/㎥</div>
+<div><b id="td">오늘</b><div id="tv" class="num">-</div><div id="diff"></div></div>
+</div>
+</div>
+
+<div class="box">
+<h3>📈 지역별 오늘 평균</h3>
+<div id="chart">불러오는 중...</div>
+</div>
+
+<div class="box">
+<h3>🗓 실제 날짜 기록</h3>
+<div id="history" class="small history">기록 없음</div>
+</div>
+
+</section>
+
+
+<section class="panel">
+
+<div class="box">
+<h2>🇰🇷 대한민국 미세먼지 지도</h2>
+
+<div class="mapbox" id="map">
+
+<img class="map" src="korea.svg" alt="대한민국 지도">
+
+<!-- 지역 마커 -->
+<div class="marker" id="m서울" title="서울" style="left:42%;top:23%" onclick="pick('서울')"></div>
+<div class="marker" id="m인천" title="인천" style="left:37%;top:27%" onclick="pick('인천')"></div>
+<div class="marker" id="m경기" title="경기" style="left:47%;top:25%" onclick="pick('경기')"></div>
+<div class="marker" id="m강원" title="강원" style="left:60%;top:21%" onclick="pick('강원')"></div>
+<div class="marker" id="m충북" title="충북" style="left:53%;top:35%" onclick="pick('충북')"></div>
+<div class="marker" id="m충남" title="충남" style="left:39%;top:39%" onclick="pick('충남')"></div>
+<div class="marker" id="m세종" title="세종" style="left:45%;top:42%" onclick="pick('세종')"></div>
+<div class="marker" id="m대전" title="대전" style="left:49%;top:45%" onclick="pick('대전')"></div>
+<div class="marker" id="m전북" title="전북" style="left:44%;top:53%" onclick="pick('전북')"></div>
+<div class="marker" id="m광주" title="광주" style="left:39%;top:65%" onclick="pick('광주')"></div>
+<div class="marker" id="m전남" title="전남" style="left:35%;top:74%" onclick="pick('전남')"></div>
+<div class="marker" id="m경북" title="경북" style="left:64%;top:44%" onclick="pick('경북')"></div>
+<div class="marker" id="m대구" title="대구" style="left:62%;top:58%" onclick="pick('대구')"></div>
+<div class="marker" id="m울산" title="울산" style="left:73%;top:59%" onclick="pick('울산')"></div>
+<div class="marker" id="m경남" title="경남" style="left:57%;top:69%" onclick="pick('경남')"></div>
+<div class="marker" id="m부산" title="부산" style="left:73%;top:73%" onclick="pick('부산')"></div>
+<div class="marker" id="m제주" title="제주" style="left:42%;top:94%" onclick="pick('제주')"></div>
+
+</div>
+</div>
+
+<div class="box">
+<h3>🎨 미세먼지 농도별 마커</h3>
+<div class="legend">
+<span class="lg"><i class="dot good"></i>좋음</span>
+<span class="lg"><i class="dot normal"></i>보통</span>
+<span class="lg"><i class="dot bad"></i>나쁨</span>
+<span class="lg"><i class="dot verybad"></i>매우나쁨</span>
+<span class="lg"><i class="dot none"></i>데이터 없음</span>
+</div>
+</div>
+
+<div class="box">
+<h3>📍 선택 지역</h3>
+<div id="infoTitle" class="infoTitle">전국</div>
+<div class="small">현재 미세먼지</div>
+<div id="infoValue" class="infoValue">-</div>
+<div id="infoGrade">데이터를 불러오는 중...</div>
+<div id="infoCompare" class="small">-</div>
+</div>
+
+</section>
+</div></main>
+
+
+<script>
+const R=[
+["서울",37.5665,126.978],["부산",35.1796,129.0756],["대구",35.8714,128.6014],
+["인천",37.4563,126.7052],["광주",35.1595,126.8526],["대전",36.3504,127.3845],
+["울산",35.5384,129.3114],["세종",36.48,127.289],["경기",37.4138,127.5183],
+["강원",37.8228,128.1555],["충북",36.6357,127.4917],["충남",36.5184,126.8],
+["전북",35.7175,127.153],["전남",34.8679,126.991],["경북",36.4919,128.8889],
+["경남",35.4606,128.2132],["제주",33.4996,126.5312]
+];
+
+let DATA=[];
+
+R.forEach(x=>region.innerHTML+=`<option>${x[0]}</option>`);
+
+const date=n=>{
+let d=new Date();d.setDate(d.getDate()+n);
+return d.toISOString().slice(0,10)
+};
+
+function grade(v,t){
+if(v==null)return["데이터 없음","none"];
+if(t=="pm2_5")return v<=15?["좋음","good"]:v<=35?["보통","normal"]:v<=75?["나쁨","bad"]:["매우나쁨","verybad"];
+return v<=30?["좋음","good"]:v<=80?["보통","normal"]:v<=150?["나쁨","bad"]:["매우나쁨","verybad"];
+}
+
+async function get(x,t){
+let u=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${x[1]}&longitude=${x[2]}&hourly=${t}&start_date=${date(-1)}&end_date=${date(0)}&timezone=Asia%2FSeoul`;
+let r=await fetch(u);if(!r.ok)throw Error("API");
+let d=await r.json(),a=d.hourly[t],tm=d.hourly.time;
+let day=n=>{let z=a.filter((v,i)=>tm[i].startsWith(date(n))&&v!=null);return z.length?z.reduce((a,b)=>a+b,0)/z.length:null};
+return{name:x[0],cur:[...a].reverse().find(v=>v!=null)??null,y:day(-1),t:day(0),ok:true};
+}
+
+async function load(){
+status.textContent="⏳ 전국 데이터를 불러오는 중...";
+DATA=[];
+for(let x of R)try{DATA.push(await get(x,type.value))}
+catch(e){DATA.push({name:x[0],cur:null,y:null,t:null,ok:false})}
+render();
+}
+
+function render(){
+let good=DATA.filter(x=>x.cur!=null),ys=good.filter(x=>x.y!=null),ts=good.filter(x=>x.t!=null);
+let ar=good.length?good.reduce((a,x)=>a+x.cur,0)/good.length:null;
+avg.textContent=ar==null?"-":ar.toFixed(1);
+
+if(good.length){
+let s=[...good].sort((a,b)=>a.cur-b.cur);
+best.textContent=s[0].name;worst.textContent=s.at(-1).name;
+}else best.textContent=worst.textContent="-";
+
+let ya=ys.length?ys.reduce((a,x)=>a+x.y,0)/ys.length:null,ta=ts.length?ts.reduce((a,x)=>a+x.t,0)/ts.length:null;
+yd.textContent="어제 · "+date(-1);td.textContent="오늘 · "+date(0);
+yv.textContent=ya==null?"-":ya.toFixed(1);tv.textContent=ta==null?"-":ta.toFixed(1);
+
+if(ya!=null&&ta!=null){
+let d=ta-ya;diff.className=d>.5?"up":d<-.5?"down":"";
+diff.textContent=d>.5?`▲ ${d.toFixed(1)} 증가`:d<-.5?`▼ ${Math.abs(d).toFixed(1)} 감소`:"━ 어제와 비슷";
+}else diff.textContent="비교할 데이터 없음";
+
+let mx=Math.max(...ts.map(x=>x.t),1);
+chart.innerHTML=ts.map(x=>`<div style="display:grid;grid-template-columns:50px 1fr 45px;gap:6px;margin:5px 0"><span>${x.name}</span><div class="barbg"><div class="bar" style="width:${x.t/mx*100}%"></div></div><b>${x.t.toFixed(1)}</b></div>`).join("")||"그래프 데이터 없음";
+
+updateMarkers();
+showSelected();
+save();
+
+status.textContent=good.length==17?"✅ 전국 17개 지역 정상":`⚠️ ${good.length}/17개 지역 성공 · 데이터 없음은 임의 표시하지 않음`;
+time.textContent="마지막 확인: "+new Date().toLocaleString("ko-KR");
+}
+
+function updateMarkers(){
+DATA.forEach(x=>{
+let m=document.getElementById("m"+x.name);if(!m)return;
+let g=grade(x.cur,type.value);
+m.className="marker "+g[1];
+});
+}
+
+function clearSelect(){
+document.querySelectorAll(".marker").forEach(m=>m.classList.remove("sel"));
+}
+
+function pick(name){
+clearSelect();
+let m=document.getElementById("m"+name);
+if(m)m.classList.add("sel");
+region.value=name;
+showSelected();
+}
+
+function showSelected(){
+let name=region.value;
+
+if(name=="all"){
+clearSelect();infoTitle.textContent="전국";
+let a=DATA.filter(x=>x.cur!=null);
+if(!a.length){infoValue.textContent="-";infoGrade.textContent="데이터 없음";infoCompare.textContent="-";return}
+let v=a.reduce((s,x)=>s+x.cur,0)/a.length;
+infoValue.textContent=v.toFixed(1);infoGrade.textContent=grade(v,type.value)[0];
+let y=a.filter(x=>x.y!=null);
+if(y.length){let d=v-y.reduce((s,x)=>s+x.y,0)/y.length;infoCompare.textContent=d>0?`어제보다 ${d.toFixed(1)} 증가`:d<0?`어제보다 ${Math.abs(d).toFixed(1)} 감소`:"어제와 비슷"}
+return;
+}
+
+clearSelect();
+let m=document.getElementById("m"+name);
+if(m)m.classList.add("sel");
+
+let x=DATA.find(x=>x.name==name);
+infoTitle.textContent=name;
+
+if(!x||x.cur==null){
+infoValue.textContent="-";infoGrade.textContent="데이터 없음";infoCompare.textContent="현재 데이터를 가져오지 못했습니다.";return;
+}
+
+infoValue.textContent=x.cur.toFixed(1);
+infoGrade.textContent=grade(x.cur,type.value)[0];
+
+if(x.y!=null){
+let d=x.t-x.y;
+infoCompare.textContent=d>0?`어제보다 ${d.toFixed(1)} 증가`:d<0?`어제보다 ${Math.abs(d).toFixed(1)} 감소`:"어제와 비슷";
+}
+}
+
+function save(){
+let a=DATA.filter(x=>x.t!=null);if(!a.length)return;
+let v=a.reduce((s,x)=>s+x.t,0)/a.length,h=JSON.parse(localStorage.aqHistory||"[]"),today=date(0),t=type.value;
+h=h.filter(x=>x.date!=today||x.type!=t);
+h.unshift({date:today,type:t,avg:+v.toFixed(1)});
+localStorage.aqHistory=JSON.stringify(h.slice(0,30));
+showHistory();
+}
+
+function showHistory(){
+let h=JSON.parse(localStorage.aqHistory||"[]");
+history.innerHTML=h.length?h.map(x=>`<div style="padding:5px;border-bottom:1px solid #eee"><b>${x.date}</b> · ${x.type=="pm10"?"PM10":"PM2.5"} · ${x.avg}㎍/㎥</div>`).join(""):"기록 없음";
+}
+
+type.onchange=load;
+region.onchange=showSelected;
+load();
+</script>
+</body>
+</html>
+```
