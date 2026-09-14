@@ -356,70 +356,30 @@ infoCompare.textContent="어제 데이터 없음";
 
 /* ⭐ 새 기록 기능 */
 function recordNow(){
-
 let name=region.value;
-
-if(name=="all"){
-
-alert("먼저 지도에서 지역을 선택해주세요.");
-
-return;
-}
-
+if(name=="all"){alert("먼저 지도에서 지역을 선택해주세요.");return;}
 let x=DATA.find(x=>x.name==name);
-
-if(!x||x.cur==null){
-
-alert("현재 해당 지역의 미세먼지 데이터를 가져오지 못했습니다.");
-
-return;
-}
-
+if(!x||x.cur==null){alert("현재 해당 지역의 미세먼지 데이터를 가져오지 못했습니다.");return;}
 let g=grade(x.cur,type.value);
-
-let h=JSON.parse(localStorage.dustRecords||"[]");
-
-h.unshift({
-date:date(0),
-region:name,
-value:+x.cur.toFixed(1),
-grade:g[0],
-type:type.value
-});
-
-localStorage.dustRecords=JSON.stringify(h.slice(0,100));
-
+let h=JSON.parse(localStorage.getItem("dustRecords")||"[]");
+h.unshift({date:date(0),region:name,value:Number(x.cur.toFixed(1)),grade:g[0],type:type.value});
+localStorage.setItem("dustRecords",JSON.stringify(h.slice(0,100)));
 showHistory();
-
-alert(`${name} 기록이 저장되었습니다.`);
-
+alert(name+" 기록이 저장되었습니다.");
 }
 
 /* ⭐ 저장된 기록 표시 */
 function showHistory(){
-
-let h=JSON.parse(localStorage.dustRecords||"[]");
-
+const box=document.getElementById("history");
+let h=JSON.parse(localStorage.getItem("dustRecords")||"[]");
 if(!h.length){
-
-history.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';
-
+box.innerHTML='<div class="empty">아직 기록이 없습니다.</div>';
 return;
 }
-
-history.innerHTML=h.map((x,i)=>`
-
+box.innerHTML=h.map(x=>`
 <div class="record">
-
-<b>${x.date}</b>
- · ${x.region}
- · <b>${x.value} ㎍/㎥</b>
- · <span class="grade">${x.grade}</span>
-
-</div>
-
-`).join("");
-
+<b>${x.date}</b> · ${x.region} · <b>${x.value} ㎍/㎥</b> · <span class="grade">${x.grade}</span>
+</div>`).join("");
 }
 
 type.onchange=load;
