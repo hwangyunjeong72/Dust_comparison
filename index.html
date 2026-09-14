@@ -1,0 +1,236 @@
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘의 진짜 정보판</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:#f4f7fb;color:#222}
+header{background:#183b56;color:white;text-align:center;padding:25px 15px}header h1{margin:0 0 7px}
+main{max-width:1100px;margin:20px auto;padding:0 15px}
+.box{background:white;border:1px solid #d9e1e8;border-radius:9px;padding:18px;margin-bottom:18px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}select,button{padding:10px;border:1px solid #ccc;border-radius:6px;background:white}button{background:#183b56;color:white;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:white;border:1px solid #ddd;border-radius:9px;padding:16px}.num{font-size:25px;font-weight:bold}
+.good{color:#16834b}.normal{color:#806000}.bad{color:#c62828}.verybad{color:#64208b}.none{color:#777}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:15px}.compare>div{border:1px solid #ddd;padding:15px;border-radius:7px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}th{background:#f1f4f7}
+.barbg{background:#eee;height:18px;border-radius:9px}.bar{height:100%;background:#4b82b8;border-radius:9px}
+.small{font-size:13px;color:#777}.up{color:#d32f2f}.down{color:#16834b}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.compare{grid-template-columns:1fr}table{font-size:12px}}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🇰🇷 오늘의 진짜 정보판</h1>
+<div>전국 미세먼지 실시간 · 어제와 오늘 비교</div>
+</header>
+
+<main>
+
+<div class="box">
+<b>데이터 상태</b>
+<div id="status">⏳ 데이터를 불러오는 중...</div>
+<div id="time" class="small"></div>
+<div class="small">출처: Open-Meteo Air Quality API</div>
+<div class="small">※ 데이터가 없으면 임의의 값을 표시하지 않습니다.</div>
+</div>
+
+<div class="controls">
+<select id="type">
+<option value="pm10">미세먼지 PM10</option>
+<option value="pm2_5">초미세먼지 PM2.5</option>
+</select>
+<select id="region">
+<option value="all">전국</option>
+</select>
+<button onclick="load()">🔄 새로고침</button>
+</div>
+
+<div class="grid">
+<div class="card"><div>전국 평균</div><div id="avg" class="num">-</div><small>㎍/㎥</small></div>
+<div class="card"><div>가장 좋은 지역</div><div id="best" class="num">-</div></div>
+<div class="card"><div>가장 나쁜 지역</div><div id="worst" class="num">-</div></div>
+<div class="card"><div>정상 데이터</div><div id="count" class="num">-</div></div>
+</div>
+
+<div class="box">
+<h2>📊 어제 ↔ 오늘</h2>
+<div class="compare">
+<div><b id="yd"></b><div id="yv" class="num">-</div>㎍/㎥</div>
+<div><b id="td"></b><div id="tv" class="num">-</div><div id="diff"></div></div>
+</div>
+</div>
+
+<div class="box">
+<h2>🇰🇷 지역별 미세먼지</h2>
+<div style="overflow:auto">
+<table>
+<thead><tr><th>지역</th><th>현재</th><th>등급</th><th>어제</th><th>오늘</th><th>변화</th><th>상태</th></tr></thead>
+<tbody id="table"><tr><td colspan="7">불러오는 중...</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="box">
+<h2>📈 오늘 평균</h2>
+<div id="chart">불러오는 중...</div>
+</div>
+
+<div class="box">
+<h2>🗓 날짜별 기록</h2>
+<div class="small">실제 날짜의 데이터가 브라우저에 저장됩니다.</div>
+<div id="history">기록 없음</div>
+</div>
+
+</main>
+
+<script>
+
+const R=[
+["서울",37.5665,126.978],
+["부산",35.1796,129.0756],
+["대구",35.8714,128.6014],
+["인천",37.4563,126.7052],
+["광주",35.1595,126.8526],
+["대전",36.3504,127.3845],
+["울산",35.5384,129.3114],
+["세종",36.48,127.289],
+["경기",37.4138,127.5183],
+["강원",37.8228,128.1555],
+["충북",36.6357,127.4917],
+["충남",36.5184,126.8],
+["전북",35.7175,127.153],
+["전남",34.8679,126.991],
+["경북",36.4919,128.8889],
+["경남",35.4606,128.2132],
+["제주",33.4996,126.5312]
+];
+
+R.forEach(x=>region.innerHTML+=`<option>${x[0]}</option>`);
+
+const date=n=>{
+let d=new Date();d.setDate(d.getDate()+n);
+return d.toISOString().slice(0,10)
+};
+
+function grade(v,t){
+if(v==null)return["데이터 없음","none"];
+if(t=="pm2_5")return v<=15?["좋음","good"]:v<=35?["보통","normal"]:v<=75?["나쁨","bad"]:["매우나쁨","verybad"];
+return v<=30?["좋음","good"]:v<=80?["보통","normal"]:v<=150?["나쁨","bad"]:["매우나쁨","verybad"]
+}
+
+async function get(x,t){
+let u=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${x[1]}&longitude=${x[2]}&hourly=${t}&start_date=${date(-1)}&end_date=${date(0)}&timezone=Asia%2FSeoul`;
+let r=await fetch(u);if(!r.ok)throw Error("API 오류");
+let d=await r.json(),a=d.hourly[t],tm=d.hourly.time;
+let day=n=>{let z=a.filter((v,i)=>tm[i].startsWith(date(n))&&v!=null);return z.length?z.reduce((a,b)=>a+b,0)/z.length:null};
+let cur=[...a].reverse().find(v=>v!=null);
+return{name:x[0],cur:cur??null,y:day(-1),t:day(0),ok:true}
+}
+
+async function load(){
+
+status.textContent="⏳ 전국 데이터를 가져오는 중...";
+table.innerHTML=`<tr><td colspan="7">불러오는 중...</td></tr>`;
+
+let t=type.value,res=[];
+
+for(let x of R){
+try{res.push(await get(x,t))}
+catch(e){res.push({name:x[0],cur:null,y:null,t:null,ok:false})}
+}
+
+let good=res.filter(x=>x.cur!=null);
+let selected=region.value=="all"?res:res.filter(x=>x.name==region.value);
+
+let ar=good.length?good.reduce((a,x)=>a+x.cur,0)/good.length:null;
+
+avg.textContent=ar==null?"-":ar.toFixed(1);
+count.textContent=good.length+"/17";
+
+if(good.length){
+let s=[...good].sort((a,b)=>a.cur-b.cur);
+best.textContent=s[0].name;
+worst.textContent=s.at(-1).name;
+}else{
+best.textContent=worst.textContent="-"
+}
+
+table.innerHTML="";
+
+selected.forEach(x=>{
+let g=grade(x.cur,t);
+let c=x.y!=null&&x.t!=null?x.t-x.y:null;
+let ch=c==null?"-":c>.5?`<span class="up">▲ ${c.toFixed(1)}</span>`:c<-.5?`<span class="down">▼ ${Math.abs(c).toFixed(1)}</span>`:"━ 동일";
+
+table.innerHTML+=`
+<tr>
+<td><b>${x.name}</b></td>
+<td>${x.cur==null?"-":x.cur.toFixed(1)}</td>
+<td class="${g[1]}">${g[0]}</td>
+<td>${x.y==null?"-":x.y.toFixed(1)}</td>
+<td>${x.t==null?"-":x.t.toFixed(1)}</td>
+<td>${ch}</td>
+<td>${x.ok?"정상":"데이터 없음"}</td>
+</tr>`;
+});
+
+let ys=good.filter(x=>x.y!=null);
+let ts=good.filter(x=>x.t!=null);
+
+let ya=ys.length?ys.reduce((a,x)=>a+x.y,0)/ys.length:null;
+let ta=ts.length?ts.reduce((a,x)=>a+x.t,0)/ts.length:null;
+
+yd.textContent="어제 · "+date(-1);
+td.textContent="오늘 · "+date(0);
+yv.textContent=ya==null?"-":ya.toFixed(1);
+tv.textContent=ta==null?"-":ta.toFixed(1);
+
+if(ya!=null&&ta!=null){
+let d=ta-ya;
+diff.className=d>.5?"up":d<-.5?"down":"";
+diff.textContent=d>.5?`▲ ${d.toFixed(1)}㎍/㎥ 증가`:d<-.5?`▼ ${Math.abs(d).toFixed(1)}㎍/㎥ 감소`:"━ 어제와 비슷";
+}else diff.textContent="비교할 데이터 없음";
+
+let mx=Math.max(...ts.map(x=>x.t),1);
+chart.innerHTML=ts.map(x=>`
+<div style="display:grid;grid-template-columns:60px 1fr 55px;gap:7px;margin:7px 0">
+<span>${x.name}</span>
+<div class="barbg"><div class="bar" style="width:${x.t/mx*100}%"></div></div>
+<b>${x.t.toFixed(1)}</b>
+</div>`).join("")||"그래프 데이터 없음";
+
+let h=JSON.parse(localStorage.aqHistory||"[]");
+h=h.filter(x=>x.date!=date(0)||x.type!=t);
+if(ta!=null)h.unshift({date:date(0),type:t,avg:+ta.toFixed(1)});
+localStorage.aqHistory=JSON.stringify(h.slice(0,30));
+
+showHistory();
+
+status.textContent=good.length==17?
+"✅ 전국 17개 지역 데이터를 정상적으로 가져왔습니다.":
+`⚠️ ${good.length}/17개 지역 성공 · 데이터가 없는 지역은 임의 표시하지 않았습니다.`;
+
+time.textContent="마지막 확인: "+new Date().toLocaleString("ko-KR");
+}
+
+function showHistory(){
+let h=JSON.parse(localStorage.aqHistory||"[]");
+history.innerHTML=h.length?h.map(x=>
+`<div style="padding:8px;border-bottom:1px solid #eee">
+<b>${x.date}</b> · ${x.type=="pm10"?"PM10":"PM2.5"} · 전국 평균 <b>${x.avg}</b> ㎍/㎥
+</div>`).join(""):"기록 없음";
+}
+
+type.onchange=load;
+region.onchange=load;
+showHistory();
+load();
+
+</script>
+</body>
+</html>
+```
