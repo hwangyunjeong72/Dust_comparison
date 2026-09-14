@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>오늘의 진짜 정보판</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #eef1f5;
+        font-family: Arial, "Malgun Gothic", sans-serif;
+        color: #222;
+    }
+
+    /* 16:9 전체 화면 */
+    .dashboard {
+        width: 100vw;
+        height: 100vh;
+        min-width: 1100px;
+        min-height: 620px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 제목 */
+    .header {
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .title {
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .date {
+        font-size: 14px;
+        color: #666;
+    }
+
+    /* 전체 내용 */
+    .main {
+        flex: 1;
+        display: flex;
+        gap: 20px;
+        min-height: 0;
+    }
+
+    /* 중앙 차트 영역 */
+    .chart-section {
+        flex: 1;
+        background: white;
+        border: 1px solid #d5d9df;
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    /* 지수 탭 */
+    .index-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .index-tab {
+        border: 1px solid #ccd1d8;
+        background: #f5f6f8;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .index-tab:hover {
+        background: #e9edf2;
+    }
+
+    .index-tab.active {
+        background: #222;
+        color: white;
+        border-color: #222;
+    }
+
+    /* 기간 탭 */
+    .period-tabs {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .period-tab {
+        border: 1px solid #d5d9df;
+        background: white;
+        padding: 7px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .period-tab:hover {
+        background: #f0f2f5;
+    }
+
+    .period-tab.active {
+        background: #e3e7ec;
+        font-weight: bold;
+    }
+
+    /* 차트 위 정보 */
+    .chart-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .index-name {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .current-price {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .change {
+        margin-left: 10px;
+        font-size: 14px;
+    }
+
+    .up {
+        color: #d33;
+    }
+
+    .down {
+        color: #2878c8;
+    }
+
+    /* 차트 */
+    .chart-container {
+        position: relative;
+        flex: 1;
+        min-height: 300px;
+        border-top: 1px solid #eee;
+        overflow: hidden;
+    }
+
+    canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    /* 오른쪽 비교 패널 */
+    .side-panel {
+        width: 310px;
+        background: white;
+        border: 1px solid #d5d9df;
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .side-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    /* 마우스 위치 정보 */
+    .hover-box {
+        background: #f5f6f8;
+        border: 1px solid #dfe3e8;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .hover-title {
+        font-size: 12px;
+        color: #777;
+        margin-bottom: 8px;
+    }
+
+    .hover-price {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .hover-date {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #777;
+    }
+
+    /* 날짜 비교 */
+    .compare-box {
+        border-top: 1px solid #e3e5e8;
+        padding-top: 20px;
+    }
+
+    .compare-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .date-row {
+        margin-bottom: 12px;
+    }
+
+    .date-row label {
+        display: block;
+        font-size: 12px;
+        color: #777;
+        margin-bottom: 5px;
+    }
+
+    .date-row input {
+        width: 100%;
+        padding: 9px;
+        border: 1px solid #ccd1d8;
+        border-radius: 5px;
+    }
+
+    .compare-button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        border-radius: 5px;
+        background: #222;
+        color: white;
+        cursor: pointer;
+    }
+
+    .compare-button:hover {
+        background: #444;
+    }
+
+    /* 비교 결과 */
+    .compare-result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f5f6f8;
+        border-radius: 6px;
+    }
+
+    .result-label {
+        font-size: 12px;
+        color: #777;
+    }
+
+    .result-value {
+        font-size: 22px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .result-percent {
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    /* 하단 상태 */
+    .footer {
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #777;
+    }
+
+    .status {
+        color: #228844;
+    }
+
+    @media (max-width: 1100px) {
+        .dashboard {
+            min-width: 900px;
+        }
+
+        .side-panel {
+            width: 260px;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+```
+<!-- 제목 -->
+<div class="header">
+    <div class="title">
+        📊 오늘의 진짜 정보판
+    </div>
+
+    <div class="date">
+        2026-09-14
+    </div>
+</div>
+
+
+<div class="main">
+
+    <!-- 중앙 차트 -->
+    <section class="chart-section">
+
+        <!-- 지수 선택 -->
+        <div class="index-tabs">
+
+            <button class="index-tab active"
+                onclick="selectIndex('DOW', this)">
+                다우존스
+            </button>
+
+            <button class="index-tab"
+                onclick="selectIndex('SP500', this)">
+                S&P 500
+            </button>
+
+            <button class="index-tab"
+                onclick="selectIndex('NASDAQ', this)">
+                NASDAQ
+            </button>
+
+            <button class="index-tab"
+                onclick="selectIndex('KOSPI', this)">
+                KOSPI
+            </button>
+
+        </div>
+
+
+        <!-- 기간 선택 -->
+        <div class="period-tabs">
+
+            <button class="period-tab active"
+                onclick="selectPeriod('1분', this)">
+                1분
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('5분', this)">
+                5분
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('10분', this)">
+                10분
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('30분', this)">
+                30분
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('60분', this)">
+                60분
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('1일', this)">
+                1일
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('1주일', this)">
+                1주일
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('1달', this)">
+                1달
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('1년', this)">
+                1년
+            </button>
+
+            <button class="period-tab"
+                onclick="selectPeriod('전체', this)">
+                전체
+            </button>
+
+        </div>
+
+
+        <!-- 현재 지수 -->
+        <div class="chart-info">
+
+            <div>
+                <span class="index-name" id="indexName">
+                    다우존스
+                </span>
+
+                <span class="change up" id="change">
+                    ▲ 0.82%
+                </span>
+            </div>
+
+            <div class="current-price" id="currentPrice">
+                45,123.45
+            </div>
+
+        </div>
+
+
+        <!-- 실제 차트 -->
+        <div class="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+    </section>
+
+
+    <!-- 오른쪽 패널 -->
+    <aside class="side-panel">
+
+        <div class="side-title">
+            📌 지수 정보
+        </div>
+
+
+        <!-- 마우스 위치 -->
+        <div class="hover-box">
+
+            <div class="hover-title">
+                차트 위치
+            </div>
+
+            <div class="hover-price" id="hoverPrice">
+                -
+            </div>
+
+            <div class="hover-date" id="hoverDate">
+                차트에 마우스를 올려보세요
+            </div>
+
+        </div>
+
+
+        <!-- 날짜 비교 -->
+        <div class="compare-box">
+
+            <div class="compare-title">
+                📅 두 날짜 비교
+            </div>
+
+
+            <div class="date-row">
+
+                <label>
+                    첫 번째 날짜
+                </label>
+
+                <input
+                    type="date"
+                    id="date1"
+                    value="2026-09-12">
+
+            </div>
+
+
+            <div class="date-row">
+
+                <label>
+                    두 번째 날짜
+                </label>
+
+                <input
+                    type="date"
+                    id="date2"
+                    value="2026-09-14">
+
+            </div>
+
+
+            <button
+                class="compare-button"
+                onclick="compareDates()">
+                두 날짜 비교
+            </button>
+
+
+            <!-- 비교 결과 -->
+            <div class="compare-result">
+
+                <div class="result-label">
+                    변화량
+                </div>
+
+                <div
+                    class="result-value"
+                    id="compareValue">
+                    +125.40
+                </div>
+
+                <div
+                    class="result-percent up"
+                    id="comparePercent">
+                    ▲ +0.28%
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+</div>
+
+
+<!-- 하단 -->
+<div class="footer">
+
+    <div>
+        현재 선택:
+        <strong id="footerIndex">
+            다우존스
+        </strong>
+        /
+        <strong id="footerPeriod">
+            1분
+        </strong>
+    </div>
+
+    <div class="status">
+        ● 데이터 상태: 정상
+    </div>
+
+</div>
+```
+
+</div>
+
+<script>
+
+    /* --------------------------------
+       기본 설정
+    -------------------------------- */
+
+    let selectedIndex = "DOW";
+    let selectedPeriod = "1분";
+
+    const canvas = document.getElementById("stockChart");
+    const ctx = canvas.getContext("2d");
+
+
+    /* --------------------------------
+       테스트용 지수 데이터
+       나중에 API 데이터로 교체
+    -------------------------------- */
+
+    const indexData = {
+
+        DOW: {
+            name: "다우존스",
+            base: 45000
+        },
+
+        SP500: {
+            name: "S&P 500",
+            base: 6500
+        },
+
+        NASDAQ: {
+            name: "NASDAQ",
+            base: 22000
+        },
+
+        KOSPI: {
+            name: "KOSPI",
+            base: 3300
+        }
+
+    };
+
+
+    /* --------------------------------
+       차트 그리기
+    -------------------------------- */
+
+    function drawChart() {
+
+        const width = canvas.parentElement.clientWidth;
+        const height = canvas.parentElement.clientHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.clearRect(0, 0, width, height);
+
+
+        const base =
+            indexData[selectedIndex].base;
+
+
+        /* 테스트용 그래프 값 */
+        const values = [];
+
+        for (let i = 0; i < 60; i++) {
+
+            const random =
+                Math.sin(i / 5) * base * 0.005 +
+                (Math.random() - 0.5) * base * 0.003;
+
+            values.push(base + random);
+
+        }
+
+
+        const max =
+            Math.max(...values);
+
+        const min =
+            Math.min(...values);
+
+
+        /* 차트 영역 */
+        const left = 40;
+        const right = 20;
+        const top = 20;
+        const bottom = 30;
+
+        const chartWidth =
+            width - left - right;
+
+        const chartHeight =
+            height - top - bottom;
+
+
+        /* 가로 기준선 */
+        ctx.strokeStyle = "#e5e7eb";
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < 5; i++) {
+
+            const y =
+                top +
+                (chartHeight / 4) * i;
+
+            ctx.beginPath();
+            ctx.moveTo(left, y);
+            ctx.lineTo(width - right, y);
+            ctx.stroke();
+
+        }
+
+
+        /* 선 그래프 */
+        ctx.beginPath();
+
+        values.forEach((value, i) => {
+
+            const x =
+                left +
+                (chartWidth / (values.length - 1)) * i;
+
+            const y =
+                top +
+                ((max - value) /
+                (max - min)) *
+                chartHeight;
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+
+        });
+
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+
+        /* 마지막 값 */
+        const lastValue =
+            values[values.length - 1];
+
+        document.getElementById("currentPrice")
+            .textContent =
+            lastValue.toLocaleString(
+                "ko-KR",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+
+        /* 마우스 이동 이벤트용 데이터 저장 */
+        canvas.chartValues = values;
+
+    }
+
+
+    /* --------------------------------
+       지수 변경
+    -------------------------------- */
+
+    function selectIndex(index, button) {
+
+        selectedIndex = index;
+
+        document
+            .querySelectorAll(".index-tab")
+            .forEach(tab => {
+                tab.classList.remove("active");
+            });
+
+        button.classList.add("active");
+
+
+        document.getElementById("indexName")
+            .textContent =
+            indexData[index].name;
+
+        document.getElementById("footerIndex")
+            .textContent =
+            indexData[index].name;
+
+
+        drawChart();
+
+    }
+
+
+    /* --------------------------------
+       기간 변경
+    -------------------------------- */
+
+    function selectPeriod(period, button) {
+
+        selectedPeriod = period;
+
+        document
+            .querySelectorAll(".period-tab")
+            .forEach(tab => {
+                tab.classList.remove("active");
+            });
+
+        button.classList.add("active");
+
+
+        document.getElementById("footerPeriod")
+            .textContent =
+            period;
+
+
+        drawChart();
+
+    }
+
+
+    /* --------------------------------
+       차트에 마우스를 올렸을 때
+    -------------------------------- */
+
+    canvas.addEventListener(
+        "mousemove",
+        function(event) {
+
+            if (!canvas.chartValues) {
+                return;
+            }
+
+
+            const rect =
+                canvas.getBoundingClientRect();
+
+
+            const mouseX =
+                event.clientX - rect.left;
+
+
+            const left = 40;
+            const right = 20;
+
+            const chartWidth =
+                canvas.width - left - right;
+
+
+            let index =
+                Math.round(
+                    ((mouseX - left) /
+                    chartWidth) *
+                    (canvas.chartValues.length - 1)
+                );
+
+
+            if (index < 0) {
+                index = 0;
+            }
+
+            if (index >= canvas.chartValues.length) {
+                index =
+                    canvas.chartValues.length - 1;
+            }
+
+
+            const value =
+                canvas.chartValues[index];
+
+
+            document.getElementById("hoverPrice")
+                .textContent =
+                value.toLocaleString(
+                    "ko-KR",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                );
+
+
+            document.getElementById("hoverDate")
+                .textContent =
+                "차트 구간 " +
+                (index + 1) +
+                " / " +
+                canvas.chartValues.length;
+
+        }
+    );
+
+
+    /* --------------------------------
+       마우스가 차트 밖으로 나갔을 때
+    -------------------------------- */
+
+    canvas.addEventListener(
+        "mouseleave",
+        function() {
+
+            document.getElementById("hoverPrice")
+                .textContent = "-";
+
+            document.getElementById("hoverDate")
+                .textContent =
+                "차트에 마우스를 올려보세요";
+
+        }
+    );
+
+
+    /* --------------------------------
+       두 날짜 비교
+    -------------------------------- */
+
+    function compareDates() {
+
+        const date1 =
+            document.getElementById("date1").value;
+
+        const date2 =
+            document.getElementById("date2").value;
+
+
+        if (!date1 || !date2) {
+
+            alert("두 날짜를 선택해주세요.");
+
+            return;
+        }
+
+
+        /*
+           현재는 화면 설계 단계이므로
+           테스트용 변화량을 사용
+        */
+
+        const value1 =
+            indexData[selectedIndex].base;
+
+        const value2 =
+            value1 + 125.40;
+
+
+        const difference =
+            value2 - value1;
+
+
+        const percent =
+            (difference / value1) * 100;
+
+
+        document.getElementById("compareValue")
+            .textContent =
+            (difference >= 0 ? "+" : "") +
+            difference.toFixed(2);
+
+
+        document.getElementById("comparePercent")
+            .textContent =
+            (difference >= 0 ? "▲ +" : "▼ ") +
+            percent.toFixed(2) +
+            "%";
+
+
+        if (difference >= 0) {
+
+            document.getElementById("comparePercent")
+                .className =
+                "result-percent up";
+
+        } else {
+
+            document.getElementById("comparePercent")
+                .className =
+                "result-percent down";
+
+        }
+
+    }
+
+
+    /* --------------------------------
+       창 크기 변경
+    -------------------------------- */
+
+    window.addEventListener(
+        "resize",
+        drawChart
+    );
+
+
+    /* --------------------------------
+       최초 실행
+    -------------------------------- */
+
+    drawChart();
+
+</script>
+
+</body>
+</html>
